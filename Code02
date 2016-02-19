@@ -1,0 +1,257 @@
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+#include <vector>
+
+using namespace std;
+
+const int dimX1 = 4;
+const int dimX2 = 4;
+const int dimY1 = 4;
+const int dimY2 = 4;
+int rows = 4, cols = 4;
+
+vector<vector<int>> iterative(vector<vector<int>> A, vector<vector<int>> B) {
+
+	int rows = A.size();
+	int cols = A[0].size();
+	int dimZ = B[0].size();
+
+	vector<vector<int>> answer;
+	answer.resize(rows, vector<int>(dimZ, 0));
+	for (int i = 0; i < rows; i++)
+	for (int j = 0; j < dimZ; j++) {
+		int sum = 0;
+		for (int k = 0; k < cols; k++)
+			sum = sum + (A[i][k] * B[k][j]);
+		answer[i][j] = sum;
+	}
+	return answer;
+}
+
+void print(vector<vector<int>> answer) {
+
+	int rows = answer.size();
+	int cols = answer[0].size();
+	cout << "\n";
+	for (int i = 0; i < rows; i++) {
+		cout << "[";
+		for (int j = 0; j < cols; j++) {
+			if (j == cols - 1)
+				cout << answer[i][j];
+			else
+				cout << answer[i][j] << " ";
+		}
+		cout << "]\n";
+	}
+	cout << "\n";
+}
+
+vector<vector<int>> sum(vector<vector<int>> A, vector<vector<int>> B) {
+
+	int n = A.size();
+	vector<vector<int>> result;
+	result.resize(n, vector<int>(n, 0));
+	int i, j;
+
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+			result[i][j] = A[i][j] + B[i][j];
+		}
+	}
+	return result;
+}
+
+vector<vector<int>> sub(vector<vector<int>> A, vector<vector<int>> B) {
+
+	int n = A.size();
+	vector<vector<int>> result;
+	result.resize(n, vector<int>(n, 0));
+	int i, j;
+
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+			result[i][j] = A[i][j] - B[i][j];
+		}
+	}
+	return result;
+}
+
+vector<vector<int>> strassen(vector<vector<int>> A, vector<vector<int>> B) {
+
+	int n = A.size();
+	vector<vector<int>> answer;
+	answer.resize(n, vector<int>(n, 0));
+
+	if (n == 1) {
+		answer[0][0] = A[0][0] * B[0][0];
+		return answer;
+	}
+
+	else {
+		//Basic Attributes
+		vector<vector<int>> a11, a12, a21, a22;
+		vector<vector<int>> b11, b12, b21, b22;
+		vector<vector<int>> c11, c12, c21, c22;
+		vector<vector<int>> m1, m2, m3, m4, m5, m6, m7;
+		vector<vector<int>> Result_1, Result_2;
+
+		//Initializing Attributes
+		a11.resize(n / 2, vector<int>(n / 2, 0));
+		a12.resize(n / 2, vector<int>(n / 2, 0));
+		a21.resize(n / 2, vector<int>(n / 2, 0));
+		a22.resize(n / 2, vector<int>(n / 2, 0));
+
+		b11.resize(n / 2, vector<int>(n / 2, 0));
+		b12.resize(n / 2, vector<int>(n / 2, 0));
+		b21.resize(n / 2, vector<int>(n / 2, 0));
+		b22.resize(n / 2, vector<int>(n / 2, 0));
+
+		c11.resize(n / 2, vector<int>(n / 2, 0));
+		c12.resize(n / 2, vector<int>(n / 2, 0));
+		c21.resize(n / 2, vector<int>(n / 2, 0));
+		c22.resize(n / 2, vector<int>(n / 2, 0));
+
+		m1.resize(n / 2, vector<int>(n / 2, 0));
+		m2.resize(n / 2, vector<int>(n / 2, 0));
+		m3.resize(n / 2, vector<int>(n / 2, 0));
+		m4.resize(n / 2, vector<int>(n / 2, 0));
+		m5.resize(n / 2, vector<int>(n / 2, 0));
+		m6.resize(n / 2, vector<int>(n / 2, 0));
+		m7.resize(n / 2, vector<int>(n / 2, 0));
+
+		//Resultant Vectors
+		Result_1.resize(n / 2, vector<int>(n / 2, 0));
+		Result_2.resize(n / 2, vector<int>(n / 2, 0));
+
+		//Dividing the Matrices into 4 Sub-Matrices:
+		for (int i = 0; i < n / 2; i++) {
+			for (int j = 0; j < n / 2; j++) {
+				a11[i][j] = A[i][j];
+				a12[i][j] = A[i][j + n / 2];
+				a21[i][j] = A[i + n / 2][j];
+				a22[i][j] = A[i + n / 2][j + n / 2];
+
+				b11[i][j] = B[i][j];
+				b12[i][j] = B[i][j + n / 2];
+				b21[i][j] = B[i + n / 2][j];
+				b22[i][j] = B[i + n / 2][j + n / 2];
+			}
+		}
+
+		Result_1 = sum(a11, a22); // a11 + a22
+		Result_2 = sum(b11, b22); // b11 + b22
+		m1 = strassen(Result_1, Result_2); // p1 = (a11+a22) * (b11+b22)
+
+		Result_1 = sum(a21, a22); // a21 + a22
+		m2 = strassen(Result_1, b11); // p2 = (a21+a22) * (b11)
+
+		Result_2 = sub(b12, b22); // b12 - b22
+		m3 = strassen(a11, Result_2); // p3 = (a11) * (b12 - b22)
+
+		Result_2 = sub(b21, b11); // b21 - b11
+		m4 = strassen(a22, Result_2); // p4 = (a22) * (b21 - b11)
+
+		Result_1 = sum(a11, a12); // a11 + a12
+		m5 = strassen(Result_1, b22); // p5 = (a11+a12) * (b22)	
+
+		Result_1 = sub(a21, a11); // a21 - a11
+		Result_2 = sum(b11, b12); // b11 + b12
+		m6 = strassen(Result_1, Result_2); // p6 = (a21-a11) * (b11+b12)
+
+		Result_1 = sub(a12, a22); // a12 - a22
+		Result_2 = sum(b21, b22); // b21 + b22
+		m7 = strassen(Result_1, Result_2); // p7 = (a12-a22) * (b21+b22)
+
+		// c11, c12, c21 and c22:
+		c12 = sum(m3, m5); // c12 = p3 + p5
+		c21 = sum(m2, m4); // c21 = p2 + p4
+
+		Result_1 = sum(m1, m4); // p1 + p4
+		Result_2 = sum(Result_1, m7); // p1 + p4 + p7
+		c11 = sub(Result_2, m5); // c11 = p1 + p4 - p5 + p7
+
+		Result_1 = sum(m1, m3); // p1 + p3
+		Result_2 = sum(Result_1, m6); // p1 + p3 + p6
+		c22 = sub(Result_2, m2); // c22 = p1 + p3 - p2 + p6
+
+		// Resultant
+		for (int i = 0; i < n / 2; i++) {
+			for (int j = 0; j < n / 2; j++) {
+				answer[i][j] = c11[i][j];
+				answer[i][j + n / 2] = c12[i][j];
+				answer[i + n / 2][j] = c21[i][j];
+				answer[i + n / 2][j + n / 2] = c22[i][j];
+			}
+		}
+	}
+	
+	return answer;
+}
+
+int main()
+{
+	vector<vector<int>> A;
+	vector<vector<int>> B;
+
+	clock_t start;
+	double duration;
+
+	cout << "\n\n\n_______________________________________________________________________________" << endl;
+	cout << "\n\t\t\t-: The Matrix multiplication program :- " << endl;
+	cout << "_______________________________________________________________________________" << endl;
+
+	A.resize(rows, vector<int>(cols, 0));
+	B.resize(rows, vector<int>(cols, 0));
+
+	srand(time(NULL));
+
+	for (int i = 0; i < dimX1; i++) {
+		for (int j = 0; j < dimY1; j++) {
+			A[i][j] = rand() % 10 + 1;
+		}
+	}
+	for (int i = 0; i < dimX2; i++) {
+		for (int j = 0; j < dimY2; j++) {
+			B[i][j] = rand() % 10 + 1;
+		}
+	}
+
+	cout << "\nThe randomly Generated Matrix 1 is: " << endl;
+	for (int i = 0; i < dimX1; i++) {
+		for (int j = 0; j < dimY1; j++) {
+			cout << A[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << "\nThe randomly Generated Matrix 2 is: " << endl;
+	for (int i = 0; i < dimX1; i++) {
+		for (int j = 0; j < dimY1; j++) {
+			cout << B[i][j] << " ";
+		}
+		cout << endl;
+	}
+
+
+	cout << "\n\n______________________________________________________________" << endl;
+	cout << "\nThe RESULTANT 'Strassen's' Matrix is: " << endl;
+	cout << "______________________________________________________________" << endl;
+
+	start = clock();
+	print(strassen(A, B));
+	duration = (clock() - start) / (double)CLOCKS_PER_SEC;
+
+	cout << "\nTime of Strassen's Multipliation: " << duration << "sec." << endl;
+
+	cout << "\n\n______________________________________________________________" << endl;
+	cout << "\nThe RESULTANT 'Iterative' Matrix is: " << endl;
+	cout << "______________________________________________________________" << endl;
+	
+	start = clock();
+	print(iterative(A, B));
+	duration = (clock() - start) / (double)CLOCKS_PER_SEC;
+
+	cout << "\nTime of Basic Multipliation: " << duration << "sec." << "\n\n\n";
+
+	system("PAUSE");
+}
